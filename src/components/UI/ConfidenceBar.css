@@ -1,0 +1,43 @@
+.confidence-bar-wrapper {
+  margin: 16px 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.confidence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.confidence-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4A5568;
+}
+
+.confidence-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1B4332;
+}
+
+.confidence-track {
+  width: 100%;
+  height: 10px;
+  background: #E2E8F0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #40916C, #74C69D);
+  animation: growWidth 1.2s ease-out forwards;
+  transition: width 0.6s ease;
+}
+
+@keyframes growWidth {
+  from { width: 0%; }
+}
