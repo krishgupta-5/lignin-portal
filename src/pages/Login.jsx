@@ -1,21 +1,33 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { apiLogin } from '../services/api';
 import './Auth.css';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Login functionality will be connected to FastAPI backend.');
+    setError('');
+    setLoading(true);
+    try {
+      await apiLogin(email, password);
+      navigate('/predict');
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="auth-page">
-      {/* Brand Panel */}
       <div className="auth-brand-panel">
         <div className="auth-brand-content">
           <div className="auth-brand-logo">🌿</div>
@@ -28,11 +40,12 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Form Panel */}
       <div className="auth-form-panel">
         <form className="auth-form" onSubmit={handleSubmit}>
           <h2>Welcome Back</h2>
           <p className="auth-form-subtitle">Sign in to your account</p>
+
+          {error && <div className="auth-error">{error}</div>}
 
           <div className="auth-input-group">
             <label htmlFor="login-email">Email Address</label>
@@ -79,7 +92,9 @@ export default function Login() {
             <a href="#" className="auth-forgot">Forgot password?</a>
           </div>
 
-          <button type="submit" className="auth-submit-btn">Sign In</button>
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
 
           <div className="auth-divider">or continue with</div>
 

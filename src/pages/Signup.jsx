@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
+import { apiSignup } from '../services/api';
 import './Auth.css';
 
 function getStrength(password) {
@@ -11,7 +12,10 @@ function getStrength(password) {
 }
 
 export default function Signup() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -27,18 +31,30 @@ export default function Signup() {
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     if (form.password !== form.confirmPassword) {
-      alert('Passwords do not match!');
+      setError('Passwords do not match!');
       return;
     }
-    alert('Signup functionality will be connected to FastAPI backend.');
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await apiSignup(form.name, form.email, form.password);
+      navigate('/predict');
+    } catch (err) {
+      setError(err.message || 'Signup failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="auth-page">
-      {/* Brand Panel */}
       <div className="auth-brand-panel">
         <div className="auth-brand-content">
           <div className="auth-brand-logo">🌿</div>
@@ -51,25 +67,19 @@ export default function Signup() {
         </div>
       </div>
 
-      {/* Form Panel */}
       <div className="auth-form-panel">
         <form className="auth-form" onSubmit={handleSubmit}>
           <h2>Create Account</h2>
           <p className="auth-form-subtitle">Join the research community</p>
 
+          {error && <div className="auth-error">{error}</div>}
+
           <div className="auth-input-group">
             <label htmlFor="signup-name">Full Name</label>
             <div className="input-with-icon">
               <User size={16} />
-              <input
-                id="signup-name"
-                type="text"
-                name="name"
-                placeholder="Enter your full name"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
+              <input id="signup-name" type="text" name="name" placeholder="Enter your full name"
+                value={form.name} onChange={handleChange} required />
             </div>
           </div>
 
@@ -77,15 +87,8 @@ export default function Signup() {
             <label htmlFor="signup-email">Email Address</label>
             <div className="input-with-icon">
               <Mail size={16} />
-              <input
-                id="signup-email"
-                type="email"
-                name="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
+              <input id="signup-email" type="email" name="email" placeholder="you@example.com"
+                value={form.email} onChange={handleChange} required />
             </div>
           </div>
 
@@ -93,21 +96,10 @@ export default function Signup() {
             <label htmlFor="signup-password">Password</label>
             <div className="input-with-icon">
               <Lock size={16} />
-              <input
-                id="signup-password"
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                placeholder="Create a strong password"
-                value={form.password}
-                onChange={handleChange}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label="Toggle password visibility"
-              >
+              <input id="signup-password" type={showPassword ? 'text' : 'password'} name="password"
+                placeholder="Create a strong password" value={form.password} onChange={handleChange} required />
+              <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}
+                aria-label="Toggle password visibility">
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
@@ -115,10 +107,7 @@ export default function Signup() {
               <>
                 <div className="password-strength">
                   {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className={`strength-bar${i <= strength.level ? ` active ${strength.cls}` : ''}`}
-                    />
+                    <div key={i} className={`strength-bar${i <= strength.level ? ` active ${strength.cls}` : ''}`} />
                   ))}
                 </div>
                 <div className={`strength-text ${strength.cls}`}>{strength.label}</div>
@@ -130,34 +119,22 @@ export default function Signup() {
             <label htmlFor="signup-confirm">Confirm Password</label>
             <div className="input-with-icon">
               <Lock size={16} />
-              <input
-                id="signup-confirm"
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm your password"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                required
-              />
+              <input id="signup-confirm" type="password" name="confirmPassword"
+                placeholder="Confirm your password" value={form.confirmPassword} onChange={handleChange} required />
             </div>
           </div>
 
           <div className="auth-terms">
-            <input
-              type="checkbox"
-              name="agreed"
-              checked={form.agreed}
-              onChange={handleChange}
-              required
-              id="signup-terms"
-            />
+            <input type="checkbox" name="agreed" checked={form.agreed} onChange={handleChange} required id="signup-terms" />
             <label htmlFor="signup-terms">
               I agree to the <a href="#" style={{ color: '#2D6A4F', fontWeight: 500 }}>Terms of Service</a> and{' '}
               <a href="#" style={{ color: '#2D6A4F', fontWeight: 500 }}>Privacy Policy</a>
             </label>
           </div>
 
-          <button type="submit" className="auth-submit-btn">Create Account</button>
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
 
           <div className="auth-divider">or continue with</div>
 
