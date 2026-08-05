@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Prediction Charts Suite Styling
+   ========================================================================== */
+
+.prediction-charts-suite {
+  background: #FFFFFF;
+  border: 1px solid #E2EBE6;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(45, 106, 79, 0.04);
+  margin-bottom: 22px;
+}
+
+/* Header & Tabs */
+.charts-suite-header {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #EEF2F0;
+  padding-bottom: 16px;
+}
+
+.charts-suite-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.charts-title-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #D8F3DC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.charts-suite-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1B4332;
+  margin: 0;
+}
+
+.charts-suite-subtitle {
+  font-size: 0.82rem;
+  color: #64748B;
+  margin: 2px 0 0 0;
+}
+
+/* Tab Pills */
+.charts-tab-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chart-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.chart-tab-btn:hover {
+  background: #F0FFF4;
+  border-color: #95D5B2;
+  color: #1B4332;
+}
+
+.chart-tab-btn.active {
+  background: #1B4332;
+  border-color: #1B4332;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(27, 67, 50, 0.2);
+}
+
+.chart-tab-btn.active svg {
+  color: #D8F3DC;
+}
+
+/* Overview Grid */
+.charts-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.chart-card-box {
+  background: #FAFCFB;
+  border: 1px solid #E5ECE8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.chart-card-box:hover {
+  border-color: #95D5B2;
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.05);
+}
+
+.chart-card-box.full-width {
+  grid-column: 1 / -1;
+  background: linear-gradient(180deg, #FAFCFB 0%, #F5F9F6 100%);
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #E2EBE6;
+}
+
+.chart-badge-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2D3748;
+}
+
+.chart-tag-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #E8F7EE;
+  color: #2D6A4F;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #D8F3DC;
+}
+
+.chart-tag-pill.highlight {
+  background: #1B4332;
+  color: #FFFFFF;
+  border-color: #1B4332;
+}
+
+.chart-body-container {
+  width: 100%;
+}
+
+/* Detailed Single View */
+.chart-single-detailed {
+  animation: fadeIn 0.3s ease;
+}
+
+.detailed-chart-box {
+  background: #FAFCFB;
+  border: 1px solid #D8E2DC;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detailed-view-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1B4332;
+  margin: 0 0 4px 0;
+}
+
+.detailed-view-desc {
+  font-size: 0.82rem;
+  color: #64748B;
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Adaptations */
+@media (max-width: 900px) {
+  .charts-overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .charts-tab-pills {
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+}

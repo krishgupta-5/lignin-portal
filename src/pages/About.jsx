@@ -79,7 +79,7 @@ export default function About() {
             <div className="arch-arrow">→</div>
             <div className="arch-card">
               <div className="arch-card-title">🗄️ Database</div>
-              <div className="arch-card-tech">MongoDB Atlas</div>
+              <div className="arch-card-tech">Cloud Data Store</div>
               <ul>
                 <li>Users &amp; inputs</li>
                 <li>Predictions</li>
@@ -98,8 +98,8 @@ export default function About() {
               { icon: '⚛️', title: 'React.js', desc: 'Modern frontend framework for building interactive user interfaces' },
               { icon: '⚡', title: 'FastAPI', desc: 'High-performance Python backend with automatic API documentation' },
               { icon: '🧠', title: 'TensorFlow / PyTorch', desc: 'Deep learning frameworks for training the prediction model' },
-              { icon: '🍃', title: 'MongoDB Atlas', desc: 'Cloud-hosted NoSQL database for flexible data storage' },
-              { icon: '☁️', title: 'AWS S3', desc: 'Cloud storage for reports, exports, and model artifacts' },
+              { icon: '🗄️', title: 'Cloud Database', desc: 'High-performance cloud storage for seamless research data persistence' },
+              { icon: '☁️', title: 'Cloud Storage', desc: 'Storage for reports, exports, and model artifacts' },
               { icon: '📊', title: 'Recharts', desc: 'React charting library for yield curve visualization' },
             ].map((tech, idx) => (
               <div key={idx} className="tech-card">

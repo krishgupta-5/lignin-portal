@@ -8,13 +8,19 @@ class YieldPoint(BaseModel):
 
 
 class PredictionRequest(BaseModel):
-    plant: str
-    chemical: str
-    temperature: float
-    time_range: str
-    ratio: str
-    ph: float
+    plant: str = "rice_straw"
+    chemical: str = "chcl_urea"
+    temperature: float = 120.0
+    time_range: str = "10 – 180"
+    ratio: str = "1:20"
+    ph: float = 7.0
     model: str = "node_augmented"
+    cellulose_percent: Optional[float] = None
+    hemicellulose_percent: Optional[float] = None
+    lignin_percent: Optional[float] = None
+    size_mm: Optional[float] = None
+    hbd_hba_ratio: Optional[float] = None
+    liquid_solid_ratio: Optional[float] = None
 
 
 class PredictionResponse(BaseModel):
@@ -31,8 +37,9 @@ class PredictionResponse(BaseModel):
     performance: str
     confidence: float
     yield_curve: list[YieldPoint]
-    user_id: str
+    user_id: Optional[str] = None
     created_at: str
+
 
 
 class HistoryQuery(BaseModel):
@@ -40,3 +47,11 @@ class HistoryQuery(BaseModel):
     performance: Optional[str] = None
     page: int = 1
     limit: int = 20
+
+
+class MultiModelPredictionResponse(BaseModel):
+    predictions: list[PredictionResponse]
+    ensemble_yield: float
+    best_model: str
+    models_evaluated: int
+

@@ -1,60 +1,67 @@
 """
-Database layer with MongoDB (motor) + in-memory fallback.
-If MongoDB is unavailable, the app still works using in-memory dicts.
+Centralized MongoDB database connection layer using Motor (async MongoDB driver).
+All data is stored directly in MongoDB Atlas.
 """
 import logging
+import certifi
+# pyrefly: ignore [missing-import]
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import MONGODB_URL, DATABASE_NAME
 
 logger = logging.getLogger(__name__)
 
-# MongoDB client (initialized on startup)
+# MongoDB client and database instance
 client: AsyncIOMotorClient | None = None
 db = None
-use_memory = False
-
-# In-memory fallback storage
-memory_store = {
-    "users": [],
-    "predictions": [],
-    "reports": [],
-}
 
 
 async def connect_db():
-    """Connect to MongoDB. Falls back to in-memory if unavailable."""
-    global client, db, use_memory
+    """Connect directly to MongoDB and initialize collections/indexes."""
+    global client, db
     try:
-        client = AsyncIOMotorClient(MONGODB_URL, serverSelectionTimeoutMS=3000)
-        # Test connection
+        client = AsyncIOMotorClient(
+            MONGODB_URL,
+            serverSelectionTimeoutMS=10000,
+            tlsCAFile=certifi.where(),
+        )
+        # Verify connection with admin ping
         await client.admin.command("ping")
         db = client[DATABASE_NAME]
-        # Create indexes
+        
+        # Ensure collections & indexes
         await db.users.create_index("email", unique=True)
         await db.predictions.create_index("user_id")
+        await db.predictions.create_index("created_at")
         await db.reports.create_index("user_id")
-        logger.info(f"Connected to MongoDB: {DATABASE_NAME}")
-        use_memory = False
+        await db.reports.create_index("created_at")
+        
+        logger.info(f"Connected to centralized MongoDB database: {DATABASE_NAME}")
+        return db
     except Exception as e:
-        logger.warning(f"MongoDB unavailable ({e}). Using in-memory storage.")
-        use_memory = True
-        client = None
-        db = None
+        logger.error(f"Failed to connect to MongoDB at {MONGODB_URL}: {e}")
+        raise e
 
 
-async def disconnect_db():
-    """Close MongoDB connection."""
-    global client
-    if client:
-        client.close()
-        logger.info("Disconnected from MongoDB")
-
-
-def get_db():
-    """Return the database instance (or None if using memory)."""
+async def ensure_db():
+    """Ensure database is connected, reconnecting if needed."""
+    global db
+    if db is None:
+        await connect_db()
     return db
 
 
-def is_memory_mode():
-    """Check if running in memory-only mode."""
-    return use_memory
+async def disconnect_db():
+    """Close MongoDB connection gracefully."""
+    global client, db
+    if client:
+        client.close()
+        client = None
+        db = None
+        logger.info("Closed connection to MongoDB.")
+
+
+def get_db():
+    """Return the active MongoDB database instance."""
+    if db is None:
+        raise RuntimeError("Database not initialized. Please ensure MongoDB is connected.")
+    return db

@@ -1,118 +1,515 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { apiLogin } from '../services/api';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle2,
+  KeyRound,
+  RotateCcw,
+  ShieldCheck,
+} from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { apiForgotPassword, apiResetPassword } from '../services/api';
+import OtpVerification from '../components/OtpVerification';
+import PasswordRequirements from '../components/PasswordRequirements';
+import { checkPasswordConstraints } from '../utils/passwordValidator';
 import './Auth.css';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
+  const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
+
+  // Navigation / multi-step state: 'form' | 'otp' | 'forgot_email' | 'forgot_reset'
+  const [step, setStep] = useState('form');
+
+  // Form Fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Forgot Password Fields
+  const [resetOtp, setResetOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Status & Feedback
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  // If already authenticated, redirect to previous path or /predict
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || '/predict';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
+
+  // Resend OTP Cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown((prev) => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // --- 1. Standard Login Submit ---
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setError('Please enter your email address.');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await apiLogin(email, password);
-      navigate('/predict');
+      await login(cleanEmail, password);
+      const from = location.state?.from?.pathname || '/predict';
+      navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      if (err.status === 403 || err.message?.toLowerCase().includes('not verified')) {
+        setStep('otp');
+      } else {
+        setError(err.message || 'Invalid email or password. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // --- 2. Forgot Password - Request OTP ---
+  const handleRequestResetOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setError('Please enter a valid registered email address.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiForgotPassword(cleanEmail);
+      setSuccess(res.message || 'Verification code sent! Please check your email.');
+      setStep('forgot_reset');
+      setResendCooldown(30);
+    } catch (err) {
+      setError(err.message || 'Failed to send password reset code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- 3. Forgot Password - Resend OTP ---
+  const handleResendResetOtp = async () => {
+    if (resendCooldown > 0 || loading) return;
+    setError('');
+    setSuccess('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setError('Email address is missing. Please go back and re-enter.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiForgotPassword(cleanEmail);
+      setSuccess(res.message || 'A fresh verification code has been sent to your email.');
+      setResendCooldown(30);
+    } catch (err) {
+      setError(err.message || 'Failed to resend code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- 4. Forgot Password - Submit Reset ---
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    const cleanOtp = resetOtp.trim();
+    if (!cleanOtp || cleanOtp.length < 6) {
+      setError('Please enter the 6-digit verification code from your email.');
+      return;
+    }
+    
+    const pwdValidation = checkPasswordConstraints(newPassword);
+    if (!pwdValidation.isValid) {
+      setError(pwdValidation.errorMessage || 'Please create a password that satisfies all security requirements.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match. Please verify.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiResetPassword(email.trim().toLowerCase(), cleanOtp, newPassword);
+      setSuccess(res.message || 'Password reset successfully! Please sign in with your new password.');
+      setStep('form');
+      setPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setResetOtp('');
+    } catch (err) {
+      setError(err.message || 'Invalid or expired verification code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const from = location.state?.from?.pathname || '/predict';
+
   return (
     <div className="auth-page">
+      {/* Brand Hero Panel */}
       <div className="auth-brand-panel">
         <div className="auth-brand-content">
           <div className="auth-brand-logo">🌿</div>
-          <div className="auth-brand-title">AI-Powered Lignin<br />Extraction Predictor</div>
+          <div className="auth-brand-title">
+            AI-Powered Lignin<br />Extraction Predictor
+          </div>
           <div className="auth-brand-tagline">Predict. Analyze. Optimize.</div>
           <p className="auth-brand-desc">
             Sign in to access your prediction history, saved comparisons,
-            and exported reports. Collaborate with your research team.
+            and research dossiers. Secure authentication with email recovery.
           </p>
         </div>
       </div>
 
+      {/* Main Form Panel */}
       <div className="auth-form-panel">
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <h2>Welcome Back</h2>
-          <p className="auth-form-subtitle">Sign in to your account</p>
+        <div className="auth-form-header">
+          {step === 'form' ? (
+            <Link to="/" className="auth-back-link">
+              <ArrowLeft size={16} /> Back to Portal
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="auth-back-link"
+              onClick={() => {
+                setStep('form');
+                setError('');
+                setSuccess('');
+              }}
+              style={{ cursor: 'pointer', background: 'none', border: 'none' }}
+            >
+              <ArrowLeft size={16} /> Back to Sign In
+            </button>
+          )}
+        </div>
 
-          {error && <div className="auth-error">{error}</div>}
+        {/* --- View 1: Unverified Account OTP --- */}
+        {step === 'otp' && (
+          <OtpVerification
+            email={email.trim().toLowerCase()}
+            onVerified={() => navigate(from, { replace: true })}
+            onBack={() => setStep('form')}
+          />
+        )}
 
-          <div className="auth-input-group">
-            <label htmlFor="login-email">Email Address</label>
-            <div className="input-with-icon">
-              <Mail size={16} />
-              <input
-                id="login-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+        {/* --- View 2: Forgot Password - Step 1: Request OTP --- */}
+        {step === 'forgot_email' && (
+          <form className="auth-form" onSubmit={handleRequestResetOtp} noValidate>
+            <h2>Reset Password</h2>
+            <p className="auth-form-subtitle">
+              Enter your registered email address and we will send you a 6-digit OTP code to reset your password.
+            </p>
+
+            {error && (
+              <div className="auth-error">
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="auth-success">
+                <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            <div className="auth-input-group">
+              <label htmlFor="forgot-email">Email Address</label>
+              <div className="input-with-icon">
+                <Mail size={16} />
+                <input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="researcher@university.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                  disabled={loading}
+                  autoFocus
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="auth-input-group">
-            <label htmlFor="login-password">Password</label>
-            <div className="input-with-icon">
-              <Lock size={16} />
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+            <button type="submit" className="auth-submit-btn" disabled={loading}>
+              {loading ? 'Sending Verification Code...' : 'Send Reset Code'}
+            </button>
+
+            <p className="auth-footer-text" style={{ marginTop: 24 }}>
+              Remember your password?{' '}
               <button
                 type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label="Toggle password visibility"
+                className="auth-forgot-link-btn"
+                onClick={() => {
+                  setStep('form');
+                  setError('');
+                  setSuccess('');
+                }}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                Sign In
               </button>
+            </p>
+          </form>
+        )}
+
+        {/* --- View 3: Forgot Password - Step 2: Enter OTP & New Password --- */}
+        {step === 'forgot_reset' && (
+          <form className="auth-form" onSubmit={handleResetPasswordSubmit} noValidate>
+            <h2>Create New Password</h2>
+            <p className="auth-form-subtitle">
+              Enter the 6-digit code sent to <strong>{email}</strong> and choose a secure new password.
+            </p>
+
+            {error && (
+              <div className="auth-error">
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="auth-success">
+                <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            {/* 6-Digit OTP Input */}
+            <div className="auth-input-group">
+              <div className="auth-label-row">
+                <label htmlFor="reset-otp">6-Digit Verification Code</label>
+                <button
+                  type="button"
+                  className="auth-forgot-link-btn"
+                  onClick={() => {
+                    setStep('forgot_email');
+                    setError('');
+                    setSuccess('');
+                  }}
+                  title="Change email address"
+                >
+                  Change Email
+                </button>
+              </div>
+              <div className="input-with-icon">
+                <KeyRound size={16} />
+                <input
+                  id="reset-otp"
+                  type="text"
+                  maxLength={6}
+                  placeholder="• • • • • •"
+                  value={resetOtp}
+                  onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="otp-box-input"
+                  required
+                  disabled={loading}
+                  autoFocus
+                />
+              </div>
+
+              {/* Resend OTP Row */}
+              <div className="auth-resend-row">
+                <span>Didn&apos;t receive the code?</span>
+                <button
+                  type="button"
+                  className="auth-resend-btn"
+                  onClick={handleResendResetOtp}
+                  disabled={resendCooldown > 0 || loading}
+                >
+                  <RotateCcw size={13} />
+                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="auth-row">
-            <label className="auth-checkbox">
-              <input type="checkbox" /> Remember me
-            </label>
-            <a href="#" className="auth-forgot">Forgot password?</a>
-          </div>
+            {/* New Password */}
+            <div className="auth-input-group">
+              <label htmlFor="new-password">New Password</label>
+              <div className="input-with-icon">
+                <Lock size={16} />
+                <input
+                  id="new-password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  placeholder="Enter strong new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
 
-          <button type="submit" className="auth-submit-btn" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+              <PasswordRequirements password={newPassword} />
+            </div>
 
-          <div className="auth-divider">or continue with</div>
+            {/* Confirm New Password */}
+            <div className="auth-input-group">
+              <label htmlFor="confirm-password">Confirm New Password</label>
+              <div className="input-with-icon">
+                <ShieldCheck size={16} />
+                <input
+                  id="confirm-password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
 
-          <div className="social-buttons">
-            <button type="button" className="social-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-              Google
+            <button type="submit" className="auth-submit-btn" disabled={loading}>
+              {loading ? 'Resetting Password...' : 'Save New Password & Sign In'}
             </button>
-            <button type="button" className="social-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#333"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.6.11.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
-              GitHub
-            </button>
-          </div>
+          </form>
+        )}
 
-          <p className="auth-footer-text">
-            Don&apos;t have an account? <Link to="/signup">Sign up</Link>
-          </p>
-        </form>
+        {/* --- View 4: Standard Sign In Form --- */}
+        {step === 'form' && (
+          <form className="auth-form" onSubmit={handleLoginSubmit} noValidate>
+            <h2>Welcome Back</h2>
+            <p className="auth-form-subtitle">Sign in to your research account</p>
+
+            {error && (
+              <div className="auth-error">
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="auth-success">
+                <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            <div className="auth-input-group">
+              <label htmlFor="login-email">Email Address</label>
+              <div className="input-with-icon">
+                <Mail size={16} />
+                <input
+                  id="login-email"
+                  type="email"
+                  placeholder="researcher@university.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="auth-input-group">
+              <div className="auth-label-row">
+                <label htmlFor="login-password">Password</label>
+                <button
+                  type="button"
+                  className="auth-forgot-link-btn"
+                  onClick={() => {
+                    setStep('forgot_email');
+                    setError('');
+                    setSuccess('');
+                  }}
+                >
+                  Forgot Password?
+                </button>
+              </div>
+              <div className="input-with-icon">
+                <Lock size={16} />
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="auth-submit-btn" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+
+            <p className="auth-footer-text" style={{ marginTop: 24 }}>
+              Don&apos;t have an account? <Link to="/signup">Create an account</Link>
+            </p>
+          </form>
+        )}
       </div>
     </div>
   );

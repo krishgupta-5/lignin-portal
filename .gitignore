@@ -29,5 +29,8 @@ __pycache__/
 *$py.class
 *.egg-info/
 .env
+.venv/
+backend/.venv/
 backend/venv/
 backend/.env
+.pytest_cache/

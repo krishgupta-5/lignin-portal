@@ -7,25 +7,36 @@ Tests cover:
 - Functional tests for prediction endpoints
 - Functional tests for history, compare, reports
 """
+# pyrefly: ignore [missing-import]
 import pytest
+# pyrefly: ignore [missing-import]
 import pytest_asyncio
+# pyrefly: ignore [missing-import]
 from httpx import AsyncClient, ASGITransport
 from main import app
-from database import memory_store
+from database import connect_db, disconnect_db, get_db
 
 
 # ========== Fixtures ==========
 
 @pytest_asyncio.fixture(autouse=True)
-async def clean_memory():
-    """Reset in-memory storage before each test."""
-    memory_store["users"].clear()
-    memory_store["predictions"].clear()
-    memory_store["reports"].clear()
+async def clean_database():
+    """Connect to DB and clean test artifacts before and after each test."""
+    try:
+        await connect_db()
+        db = get_db()
+        await db.users.delete_many({"email": {"$regex": r"@example\.com$"}})
+    except Exception:
+        pass
     yield
-    memory_store["users"].clear()
-    memory_store["predictions"].clear()
-    memory_store["reports"].clear()
+    try:
+        db = get_db()
+        await db.users.delete_many({"email": {"$regex": r"@example\.com$"}})
+    except Exception:
+        pass
+
+
+
 
 
 @pytest_asyncio.fixture
@@ -38,15 +49,23 @@ async def client():
 
 @pytest_asyncio.fixture
 async def auth_client(client):
-    """Create an authenticated client (signup + get token)."""
-    res = await client.post("/api/auth/signup", json={
+    """Create an authenticated client (signup + verify OTP + get token)."""
+    await client.post("/api/auth/signup", json={
         "name": "Test User",
         "email": "test@example.com",
         "password": "testpassword123",
     })
+    db = get_db()
+    user = await db.users.find_one({"email": "test@example.com"})
+    otp = user["verification_otp"]
+    res = await client.post("/api/auth/verify-otp", json={
+        "email": "test@example.com",
+        "otp": otp,
+    })
     token = res.json()["access_token"]
     client.headers["Authorization"] = f"Bearer {token}"
     return client
+
 
 
 # ========== Unit Tests: Prediction Service ==========
@@ -82,18 +101,19 @@ class TestPredictionService:
     def test_predict_yield_curve_has_19_points(self):
         """Yield curve from 0 to 180 in steps of 10 = 19 points."""
         from services.prediction_service import predict_lignin
-        result = predict_lignin("miscanthus", "naoh", 120.0, "10-180", "1:15", 3.5)
+        result = predict_lignin("miscanthus", "naoh", 120.0, "0-180", "1:15", 3.5)
         assert len(result["yield_curve"]) == 19
 
     def test_predict_yield_curve_starts_at_zero(self):
         from services.prediction_service import predict_lignin
-        result = predict_lignin("miscanthus", "naoh", 120.0, "10-180", "1:15", 3.5)
+        result = predict_lignin("miscanthus", "naoh", 120.0, "0-180", "1:15", 3.5)
         assert result["yield_curve"][0]["time"] == 0
 
     def test_predict_yield_curve_ends_at_180(self):
         from services.prediction_service import predict_lignin
-        result = predict_lignin("miscanthus", "naoh", 120.0, "10-180", "1:15", 3.5)
+        result = predict_lignin("miscanthus", "naoh", 120.0, "0-180", "1:15", 3.5)
         assert result["yield_curve"][-1]["time"] == 180
+
 
     def test_predict_is_deterministic(self):
         """Same inputs should give same outputs."""
@@ -176,10 +196,58 @@ class TestAuth:
         })
         assert res.status_code == 201
         data = res.json()
+        assert data["status"] == "verification_required"
+        assert data["is_verified"] is False
+        assert data["email"] == "alice@example.com"
+
+    @pytest.mark.asyncio
+    async def test_verify_otp_success(self, client):
+        await client.post("/api/auth/signup", json={
+            "name": "Alice",
+            "email": "alice@example.com",
+            "password": "password123",
+        })
+        db = get_db()
+        user = await db.users.find_one({"email": "alice@example.com"})
+        otp = user["verification_otp"]
+
+        res = await client.post("/api/auth/verify-otp", json={
+            "email": "alice@example.com",
+            "otp": otp,
+        })
+        assert res.status_code == 200
+        data = res.json()
         assert "access_token" in data
-        assert data["token_type"] == "bearer"
-        assert data["user"]["name"] == "Alice"
-        assert data["user"]["email"] == "alice@example.com"
+        assert data["user"]["is_verified"] is True
+
+    @pytest.mark.asyncio
+    async def test_verify_otp_invalid_code(self, client):
+        await client.post("/api/auth/signup", json={
+            "name": "Alice",
+            "email": "alice@example.com",
+            "password": "password123",
+        })
+        res = await client.post("/api/auth/verify-otp", json={
+            "email": "alice@example.com",
+            "otp": "000000",
+        })
+        assert res.status_code == 400
+        assert "Invalid verification code" in res.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_resend_otp(self, client):
+        await client.post("/api/auth/signup", json={
+            "name": "Alice",
+            "email": "alice@example.com",
+            "password": "password123",
+        })
+        # Wait or mock cooldown
+        db = get_db()
+        await db.users.update_one({"email": "alice@example.com"}, {"$set": {"last_otp_sent_at": "2020-01-01T00:00:00"}})
+
+        res = await client.post("/api/auth/resend-otp", json={"email": "alice@example.com"})
+        assert res.status_code == 200
+        assert "verification code has been sent" in res.json()["message"]
 
     @pytest.mark.asyncio
     async def test_signup_duplicate_email(self, client):
@@ -188,6 +256,10 @@ class TestAuth:
             "email": "bob@example.com",
             "password": "password123",
         })
+        # Verify first user
+        db = get_db()
+        await db.users.update_one({"email": "bob@example.com"}, {"$set": {"is_verified": True}})
+
         res = await client.post("/api/auth/signup", json={
             "name": "Bob2",
             "email": "bob@example.com",
@@ -198,13 +270,17 @@ class TestAuth:
 
     @pytest.mark.asyncio
     async def test_login_success(self, client):
-        # First signup
+        # Signup
         await client.post("/api/auth/signup", json={
             "name": "Carol",
             "email": "carol@example.com",
             "password": "mypassword",
         })
-        # Then login
+        # Verify
+        db = get_db()
+        await db.users.update_one({"email": "carol@example.com"}, {"$set": {"is_verified": True}})
+
+        # Login
         res = await client.post("/api/auth/login", json={
             "email": "carol@example.com",
             "password": "mypassword",
@@ -215,12 +291,28 @@ class TestAuth:
         assert data["user"]["email"] == "carol@example.com"
 
     @pytest.mark.asyncio
+    async def test_login_unverified_returns_403(self, client):
+        await client.post("/api/auth/signup", json={
+            "name": "Dave",
+            "email": "dave@example.com",
+            "password": "mypassword",
+        })
+        res = await client.post("/api/auth/login", json={
+            "email": "dave@example.com",
+            "password": "mypassword",
+        })
+        assert res.status_code == 403
+
+    @pytest.mark.asyncio
     async def test_login_wrong_password(self, client):
         await client.post("/api/auth/signup", json={
             "name": "Dave",
             "email": "dave@example.com",
             "password": "correct_password",
         })
+        db = get_db()
+        await db.users.update_one({"email": "dave@example.com"}, {"$set": {"is_verified": True}})
+
         res = await client.post("/api/auth/login", json={
             "email": "dave@example.com",
             "password": "wrong_password",
@@ -231,6 +323,7 @@ class TestAuth:
     async def test_login_nonexistent_user(self, client):
         res = await client.post("/api/auth/login", json={
             "email": "nobody@example.com",
+
             "password": "anything",
         })
         assert res.status_code == 401
@@ -265,7 +358,7 @@ class TestPredictions:
             "plant": "miscanthus",
             "chemical": "naoh",
             "temperature": 120,
-            "time_range": "10-180",
+            "time_range": "0-180",
             "ratio": "1:15",
             "ph": 3.5,
             "model": "tabnet",
@@ -282,6 +375,7 @@ class TestPredictions:
         assert "yield_curve" in data
         assert len(data["yield_curve"]) == 19
 
+
     @pytest.mark.asyncio
     async def test_predict_default_model(self, auth_client):
         res = await auth_client.post("/api/predict", json={
@@ -297,6 +391,7 @@ class TestPredictions:
 
     @pytest.mark.asyncio
     async def test_predict_unauthenticated(self, client):
+        """Unauthenticated/guest users can still run real predictions without saving to history."""
         res = await client.post("/api/predict", json={
             "plant": "miscanthus",
             "chemical": "naoh",
@@ -305,7 +400,12 @@ class TestPredictions:
             "ratio": "1:15",
             "ph": 3.5,
         })
-        assert res.status_code == 401
+        assert res.status_code == 201
+        data = res.json()
+        assert data["user_id"] is None
+        assert "lignin_yield" in data
+        assert len(data["yield_curve"]) > 0
+
 
     @pytest.mark.asyncio
     async def test_predict_all_models(self, auth_client):

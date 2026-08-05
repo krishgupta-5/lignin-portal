@@ -19,7 +19,10 @@ export default function Home() {
             plant–chemical combination using advanced deep learning models.
           </p>
           <div className="hero-actions">
-            <Link to="/predict" className="hero-btn-primary">
+            <Link
+              to="/predict"
+              className="hero-btn-primary"
+            >
               Start Predicting <ArrowRight size={18} />
             </Link>
             <Link to="/about" className="hero-btn-secondary">

@@ -1,5 +1,5 @@
 .reports-page {
-  padding: 32px 24px;
+  padding: 32px 24px 60px;
   max-width: 1280px;
   margin: 0 auto;
 }
@@ -23,6 +23,15 @@
 .reports-header-text p {
   color: #718096;
   font-size: 0.95rem;
+}
+
+.reports-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  margin-top: 20px;
 }
 
 .reports-grid {
@@ -109,6 +118,7 @@
   display: flex;
   gap: 8px;
   margin-top: 14px;
+  flex-wrap: wrap;
 }
 
 .report-action-btn {
@@ -118,6 +128,7 @@
   background: #fff;
   color: #4A5568;
   font-size: 0.82rem;
+  font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -131,8 +142,132 @@
   background: #F0FFF4;
 }
 
+.report-action-btn.primary {
+  background: #F0FFF4;
+  border-color: #A7F3D0;
+  color: #166534;
+  font-weight: 600;
+}
+
+.report-action-btn.delete:hover {
+  border-color: #EF4444;
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+/* Share Modal */
+.share-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.share-modal-content {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 580px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.share-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.share-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.share-modal-title h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  color: #0F172A;
+  margin: 0;
+}
+
+.share-modal-close {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-modal-close:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.share-modal-body {
+  padding: 24px;
+}
+
+.share-modal-desc {
+  font-size: 0.9rem;
+  color: #475569;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.share-textarea-wrap {
+  margin-bottom: 20px;
+}
+
+.share-summary-textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  color: #1E293B;
+  background: #F8FAFC;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.share-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 @media (max-width: 768px) {
   .reports-grid {
     grid-template-columns: 1fr;
+  }
+  .share-modal-actions {
+    flex-direction: column;
   }
 }
