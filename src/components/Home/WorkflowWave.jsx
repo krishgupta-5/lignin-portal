@@ -32,15 +32,10 @@ export default function WorkflowWave() {
       {/* Floating Icons Wave */}
       <div className="wave-track">
         {WORKFLOW_STEPS.map((step, idx) => {
-          // Negative delay ensures the animation is already running and staggered immediately
-          // 8 nodes across a 4s animation -> offset by -0.5s each for a perfect traveling wave
-          const delay = `-${idx * 0.5}s`;
-          
           return (
             <div 
               key={step.id}
               className={`wave-node ${hoveredIndex === idx || selectedStep?.id === step.id ? 'is-active' : ''}`}
-              style={{ animationDelay: delay }}
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
               onClick={() => setSelectedStep(step)}
