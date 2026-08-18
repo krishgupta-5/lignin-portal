@@ -478,7 +478,8 @@ export default function Predict() {
   const activeModel = MODEL_OPTIONS.find((m) => m.id === selectedModel);
 
   return (
-    <div className="predict-page">
+    <div className="light-page-wrapper">
+      <div className="predict-page" ref={resultsRef}>
       {/* Guest Mode Notice Banner (if not logged in) */}
       {!isAuthenticated && (
         <div className="login-required-banner">
@@ -976,6 +977,7 @@ export default function Predict() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

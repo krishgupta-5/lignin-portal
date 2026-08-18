@@ -1,0 +1,232 @@
+.workflow-wave-container {
+  position: relative;
+  width: 100%;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  min-height: 280px;
+}
+
+/* The invisible track holding all the nodes */
+.wave-track {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1000px;
+  position: relative;
+  z-index: 2;
+  gap: 12px;
+}
+
+/* Individual node (circle) */
+.wave-node {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+  /* Apply continuous wave animation */
+  animation: bobbingWave 4s ease-in-out infinite;
+}
+
+/* Pause the animation on hover so the user can easily read the tooltip */
+.wave-node:hover {
+  animation-play-state: paused;
+}
+
+@keyframes bobbingWave {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-40px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(40px); }
+  100% { transform: translateY(0); }
+}
+
+.wave-icon {
+  width: 64px;
+  height: 64px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+  z-index: 3;
+  position: relative;
+}
+
+.wave-node:hover .wave-icon,
+.wave-node.is-active .wave-icon {
+  color: #16A34A;
+  border-color: rgba(22, 163, 74, 0.3);
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.15);
+  transform: scale(1.15);
+}
+
+/* Label visible below icon by default */
+.wave-label {
+  position: absolute;
+  top: 76px;
+  width: 120px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+/* Alternate label positions for bottom curve of the sine wave */
+.wave-node:nth-child(3) .wave-label,
+.wave-node:nth-child(4) .wave-label,
+.wave-node:nth-child(5) .wave-label {
+  top: auto;
+  bottom: 76px;
+}
+
+.wave-label-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+  transition: color 0.3s ease;
+}
+
+.wave-node:hover .wave-label-title,
+.wave-node.is-active .wave-label-title {
+  color: #16A34A;
+}
+
+.wave-label-desc {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+}
+
+.wave-node:nth-child(3) .wave-label-desc,
+.wave-node:nth-child(4) .wave-label-desc,
+.wave-node:nth-child(5) .wave-label-desc {
+  transform: translateY(5px);
+}
+
+.wave-node:hover .wave-label-desc,
+.wave-node.is-active .wave-label-desc {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .wave-track {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+  }
+  .wave-node {
+    animation: none !important; /* Disable sine wave animation on mobile */
+    flex: 0 0 calc(25% - 40px);
+  }
+  .wave-label {
+    position: static;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .wave-label-desc {
+    opacity: 1;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .wave-node {
+    flex: 0 0 calc(50% - 30px);
+  }
+}
+
+/* Wave Details Box */
+.wave-details-box {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
+  z-index: 10;
+  animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(40px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(20px) scale(1);
+  }
+}
+
+.wave-details-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wave-details-close:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.wave-details-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.wave-details-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(22, 163, 74, 0.1);
+  color: #16A34A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wave-details-title h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.wave-details-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}

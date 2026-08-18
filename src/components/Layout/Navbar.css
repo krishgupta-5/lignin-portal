@@ -1,13 +1,19 @@
 .navbar {
   height: 64px;
-  background: linear-gradient(135deg, #1B4332 0%, #14342a 100%);
+  background: #07100C; /* Solid dark color everywhere */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   position: sticky;
   top: 0;
   z-index: 100;
   display: flex;
   align-items: center;
   padding: 0 24px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.3s ease, padding 0.3s ease;
+}
+
+.navbar.navbar-scrolled {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 
 .navbar-container {

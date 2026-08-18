@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
 /* ============================================
    AI-Powered Lignin Extraction Predictor
    Design System & Global Styles
@@ -23,25 +25,30 @@
   --color-danger: #DC3545;
   --color-info: #0DCAF0;
   
-  /* Neutrals */
-  --color-bg-page: #F5F7FA;
-  --color-bg-card: #FFFFFF;
-  --color-bg-elevated: #FFFFFF;
-  --color-bg-input: #F8F9FA;
-  --color-border: #E2E8F0;
-  --color-border-light: #EDF2F7;
-  --color-border-input: #CBD5E1;
+  /* Neutrals aligned with Landing Page */
+  --color-bg-page: #FFFFFF;
+  --color-bg-card: #F8FAF9;
+  --color-bg-elevated: #EEF3F0;
+  --color-bg-input: #FFFFFF;
+  --color-border: rgba(33, 75, 54, 0.15);
+  --color-border-light: rgba(33, 75, 54, 0.08);
+  --color-border-input: rgba(33, 75, 54, 0.25);
   
-  /* Text */
-  --color-text-primary: #1A202C;
-  --color-text-secondary: #4A5568;
-  --color-text-muted: #718096;
-  --color-text-light: #A0AEC0;
+  /* Text aligned with Landing Page */
+  --color-text-primary: #07100C;
+  --color-text-secondary: #2C6045;
+  --color-text-muted: #3C7555;
+  --color-text-light: #78C8B8;
   --color-text-inverse: #FFFFFF;
   
-  /* Typography */
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Typography aligned with Landing Page */
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  
+  /* Fallbacks for inconsistent components */
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-heading);
+  --font-mono: 'IBM Plex Mono', monospace;
   
   /* Spacing */
   --space-xs: 4px;
@@ -52,28 +59,56 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
   
-  /* Border Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  /* Radius Base */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
   
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.03);
-  --shadow-xl: 0 20px 40px -5px rgba(0,0,0,0.1), 0 8px 16px -4px rgba(0,0,0,0.04);
-  --shadow-card: 0 2px 12px rgba(27, 67, 50, 0.06);
-  --shadow-card-hover: 0 8px 30px rgba(27, 67, 50, 0.12);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
   
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 400ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Navbar */
   --navbar-height: 64px;
+}
+
+/* ---------- LIGHT THEME GLOBALS ---------- */
+.light-page-wrapper {
+  --bg: #FFFFFF;
+  --bg-2: #F8FAF9;
+  --surface: #EEF3F0;
+  --border: rgba(33, 75, 54, 0.15);
+  --text: #07100C;
+  --text-secondary: #2C6045;
+  --biomass: #214B36;
+  --biomass-light: #3C7555;
+  --lignin: #C47A35;
+  --lignin-light: #E0A05A;
+  --des: #78C8B8;
+  --des-soft: #4D8F82;
+  --data: #8FE0D2;
+  
+  --font-serif: 'Fraunces', serif;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  background-color: var(--bg);
+  color: var(--text);
+  width: 100%;
+  position: relative;
+  z-index: 5;
 }
 
 /* --- Reset & Base --- */
