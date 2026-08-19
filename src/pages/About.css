@@ -1653,6 +1653,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
   .cta-stats-strip { grid-template-columns: 1fr 1fr; display: grid; gap: 2rem; padding: 2rem; }
   
   .arch-grid-3, .arch-grid-4 { grid-template-columns: 1fr 1fr; }
