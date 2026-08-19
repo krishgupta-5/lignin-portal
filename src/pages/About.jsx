@@ -777,35 +777,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* 9. AUGMENTATION */}
-      <section className="sec-light py-20">
-        <div className="about-container">
-          <span className="section-eyebrow">An Important Finding</span>
-          <h2 className="section-title text-center" style={{textAlign:'center'}}>When More Data Wasn't Better</h2>
-          
-          <div className="aug-compare">
-            <motion.div className="aug-card" initial={{opacity:0, scale:0.95}} whileInView={{opacity:1, scale:1}} viewport={{once:true}}>
-              <h4>PRISTINE EXPERIMENTAL DATA</h4>
-              <div style={{fontSize:'2rem', fontWeight:700, color:'var(--forest-green)'}}>R² 0.8726</div>
-              <div style={{fontSize:'1rem', color:'#666'}}>MAE 0.0504</div>
-            </motion.div>
-            
-            <motion.div initial={{opacity:0, y:-10}} whileInView={{opacity:1, y:0}} viewport={{once:true}} transition={{delay:0.3}}>
-              <ArrowRight size={32} className="aug-arrow" />
-            </motion.div>
 
-            <motion.div className="aug-card" style={{borderColor:'#fca5a5', background:'#fef2f2'}} initial={{opacity:0, scale:0.95}} whileInView={{opacity:1, scale:1}} viewport={{once:true}} transition={{delay:0.5}}>
-              <h4 style={{color:'#991b1b'}}>~10% GAUSSIAN SYNTHETIC AUGMENTATION</h4>
-              <div style={{fontSize:'2rem', fontWeight:700, color:'#b91c1c'}}>R² 0.8335</div>
-              <div style={{fontSize:'1rem', color:'#991b1b'}}>MAE 0.0565</div>
-            </motion.div>
-          </div>
-
-          <p style={{textAlign:'center', maxWidth:'800px', margin:'0 auto', color:'#666', lineHeight:1.6}}>
-            The study found that approximately 10% Gaussian synthetic augmentation reduced blind-test performance rather than improving generalization. This highlights the importance of chemically meaningful data generation for scientific machine learning.
-          </p>
-        </div>
-      </section>
 
       {/* 10. TRIAL VS DIGITAL */}
       <section className="sec-dark py-20">

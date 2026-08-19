@@ -821,10 +821,6 @@
 .val-m-box { text-align: center; }
 
 /* 9. AUGMENTATION */
-.aug-compare { display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2rem; }
-.aug-card { background: #fff; padding: 2rem; border-radius: 16px; border: 1px solid #eee; text-align: center; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
-.aug-card h4 { margin-bottom: 1.5rem; font-size: 1rem; color: var(--graphite); }
-.aug-arrow { color: #ef4444; }
 
 /* 10. TRIAL VS DIGITAL */
 .td-grid { 
