@@ -19,11 +19,10 @@ async def connect_db():
     """Connect directly to MongoDB and initialize collections/indexes."""
     global client, db
     try:
-        client = AsyncIOMotorClient(
-            MONGODB_URL,
-            serverSelectionTimeoutMS=10000,
-            tlsCAFile=certifi.where(),
-        )
+        kwargs = {"serverSelectionTimeoutMS": 10000}
+        if "+srv" in MONGODB_URL:
+            kwargs["tlsCAFile"] = certifi.where()
+        client = AsyncIOMotorClient(MONGODB_URL, **kwargs)
         # Verify connection with admin ping
         await client.admin.command("ping")
         db = client[DATABASE_NAME]

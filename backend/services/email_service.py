@@ -23,7 +23,12 @@ def _send_smtp_sync(to_email: str, subject: str, html_body: str, plain_text: str
     to maximize inbox placement and prevent spam filter flagging.
     """
     if not SMTP_USER or not SMTP_PASSWORD:
-        logger.warning("SMTP credentials not configured. Email not sent.")
+        logger.warning("SMTP credentials not configured. Email not sent to %s.", to_email)
+        logger.info("╔══════════════════════════════════════════════╗")
+        logger.info("║  DEV MODE — OTP CODE (check subject below)  ║")
+        logger.info("║  To: %-40s║", to_email)
+        logger.info("║  Subject: %-35s║", subject[:35])
+        logger.info("╚══════════════════════════════════════════════╝")
         return False
 
     msg = MIMEMultipart("alternative")

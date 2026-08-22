@@ -28,7 +28,7 @@ import PredictionChartsSuite from '../components/Charts/PredictionChartsSuite';
 import MultiModelBenchmarkSuite from '../components/Charts/MultiModelBenchmarkSuite';
 import './Predict.css';
 
-const MODEL_OPTIONS = [
+export const MODEL_OPTIONS = [
   {
     id: 'tabnet',
     name: 'TabNet',
@@ -62,6 +62,127 @@ const MODEL_OPTIONS = [
     icon: '⚡',
   },
 ];
+
+
+import { motion, AnimatePresence } from 'framer-motion';
+// --- Architecture Pipeline Component ---
+const ArchitecturePipeline = ({ formData, selectedModel, compareAllMode, isLoading, result, multiResults }) => {
+  const hasResult = !!(result || multiResults);
+  const isRunning = isLoading;
+
+  const s1 = hasResult || isRunning ? 'completed' : 'active';
+  const s2 = hasResult ? 'completed' : 'active';
+  const s3 = hasResult ? 'completed' : isRunning ? 'active' : 'idle';
+  const s4 = hasResult ? 'completed' : isRunning ? 'active' : 'idle';
+  const s5 = hasResult ? 'completed' : 'idle';
+  const s6 = hasResult ? 'completed' : 'idle';
+  
+  const getProgressWidth = () => {
+    if (hasResult) return '100%';
+    if (isRunning) return '60%';
+    return '15%';
+  };
+
+  const activeModelName = compareAllMode ? '4 Models Concurrent' : (
+    selectedModel === 'node_augmented' ? 'NODE Augmented' :
+    selectedModel === 'node' ? 'NODE' :
+    selectedModel === 'dnn' ? 'DNN' : 'TabNet'
+  );
+
+  return (
+    <div className="ap-section">
+      <div className="ap-header">
+        <span className="ap-eyebrow">ARCHITECTURE</span>
+        <h2 className="ap-title">How the Prediction Engine Works</h2>
+        <p className="ap-subtitle">Follow how experimental biomass, DES, and process parameters move through the prediction pipeline.</p>
+      </div>
+
+      <div className="ap-wrapper">
+        <div className="ap-connector-track desktop-only">
+           <motion.div className="ap-connector-fill" initial={{width:0}} animate={{width: getProgressWidth()}} transition={{duration: 1.5, ease: 'easeInOut'}} />
+           {isRunning && <motion.div className="ap-connector-particle" animate={{left: ['0%', '100%']}} transition={{duration: 2, repeat: Infinity}} />}
+        </div>
+        
+        <div className="ap-stages">
+          <div className={`ap-stage ${s1}`}>
+            <div className="ap-stage-icon-box">01</div>
+            <div className="ap-stage-text">
+              <h4 className="ap-stage-title">Experimental Data</h4>
+              <div className="ap-stage-content">
+                {!hasResult && !isRunning ? (
+                  <>
+                    <div className="ap-chip">Biomass: {formData?.feedMaterial || "Configured"}</div>
+                    <div className="ap-chip">DES: {formData?.hba}+{formData?.hbd}</div>
+                  </>
+                ) : (
+                  <div className="ap-status-msg">Inputs Locked</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className={`ap-stage ${s2}`}>
+            <div className="ap-stage-icon-box">02</div>
+            <div className="ap-stage-text">
+              <h4 className="ap-stage-title">Deep Learning</h4>
+              <div className="ap-stage-content">
+                <div className="ap-chip highlight">{activeModelName}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className={`ap-stage ${s3}`}>
+            <div className="ap-stage-icon-box">03</div>
+            <div className="ap-stage-text">
+              <h4 className="ap-stage-title">Optimization</h4>
+              <div className="ap-stage-content">
+                {isRunning ? <div className="ap-status-msg pulse">Tuning Hyperparameters...</div> : <div className="ap-chip">Model Selection</div>}
+              </div>
+            </div>
+          </div>
+
+          <div className={`ap-stage ${s4}`}>
+            <div className="ap-stage-icon-box">04</div>
+            <div className="ap-stage-text">
+              <h4 className="ap-stage-title">Prediction</h4>
+              <div className="ap-stage-content">
+                {hasResult ? (
+                  <div className="ap-chip success">Output Generated</div>
+                ) : isRunning ? (
+                  <div className="ap-status-msg pulse">Estimating Yield...</div>
+                ) : (
+                  <div className="ap-status-msg">Awaiting execution</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className={`ap-stage ${s5}`}>
+            <div className="ap-stage-icon-box">05</div>
+            <div className="ap-stage-text">
+              <h4 className="ap-stage-title">Explainability</h4>
+              <div className="ap-stage-content">
+                {hasResult ? <div className="ap-chip">SHAP Analysis Ready</div> : <div className="ap-status-msg">Awaiting prediction</div>}
+              </div>
+            </div>
+          </div>
+
+          <div className={`ap-stage ${s6}`}>
+            <div className="ap-stage-icon-box">06</div>
+            <div className="ap-stage-text">
+              <h4 className="ap-stage-title">Validation</h4>
+              <div className="ap-stage-content">
+                {hasResult ? <div className="ap-chip">R² & MAE Verified</div> : <div className="ap-status-msg">Awaiting prediction</div>}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+// ----------------------------------------
 
 function getPerformanceColor(perf) {
   switch (perf) {
@@ -512,6 +633,18 @@ export default function Predict() {
           </div>
         </div>
       )}
+
+        {/* PIPELINE VISUALIZATION */}
+        <ArchitecturePipeline 
+          formData={formData} 
+          selectedModel={selectedModel} 
+          compareAllMode={compareAllMode} 
+          isLoading={isLoading} 
+          result={result} 
+          multiResults={multiResults} 
+        />
+
+
 
       {/* TOP SECTION: Model Selector & Multi-Model Toggle */}
       <div className="model-selector-section">

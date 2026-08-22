@@ -728,3 +728,181 @@
     justify-content: center;
   }
 }
+/* Architecture Pipeline */
+.ap-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #D8E3DD;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+.ap-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.ap-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #2E7D4F;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.ap-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #13201A;
+  margin-bottom: 0.5rem;
+}
+.ap-subtitle {
+  color: #555;
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ap-wrapper {
+  position: relative;
+  padding-top: 1rem;
+}
+.ap-connector-track {
+  position: absolute;
+  top: 36px;
+  left: 5%;
+  right: 5%;
+  height: 4px;
+  background: #EAEFEA;
+  border-radius: 2px;
+  z-index: 1;
+}
+.ap-connector-fill {
+  height: 100%;
+  background: #79CFA9;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(121, 207, 169, 0.5);
+  position: relative;
+}
+.ap-connector-particle {
+  position: absolute;
+  top: -2px;
+  width: 8px;
+  height: 8px;
+  background: #2E7D4F;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #2E7D4F;
+}
+
+.ap-stages {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+.ap-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 0.5rem;
+  transition: all 0.3s;
+}
+.ap-stage-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #D8E3DD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #888;
+  margin-bottom: 1rem;
+  transition: all 0.3s;
+  background: #F7F8F5;
+}
+.ap-stage-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #13201A;
+  margin-bottom: 0.5rem;
+}
+.ap-stage-content {
+  min-height: 40px;
+}
+.ap-chip {
+  display: inline-block;
+  background: #F7F8F5;
+  border: 1px solid #D8E3DD;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #444;
+  margin: 2px;
+}
+.ap-chip.highlight {
+  background: rgba(121, 207, 169, 0.15);
+  border-color: #79CFA9;
+  color: #2E7D4F;
+  font-weight: 600;
+}
+.ap-chip.success {
+  background: rgba(45, 125, 79, 0.1);
+  border-color: #2E7D4F;
+  color: #2E7D4F;
+}
+.ap-status-msg {
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+}
+.ap-status-msg.pulse {
+  color: #2E7D4F;
+  animation: pulse 1.5s infinite;
+}
+
+/* States */
+.ap-stage.active .ap-stage-icon-box {
+  border-color: #79CFA9;
+  color: #2E7D4F;
+  box-shadow: 0 0 15px rgba(121, 207, 169, 0.3);
+  transform: scale(1.1);
+}
+.ap-stage.completed .ap-stage-icon-box {
+  background: #79CFA9;
+  border-color: #79CFA9;
+  color: #fff;
+}
+.ap-stage.idle .ap-stage-title {
+  color: #999;
+}
+.ap-stage:hover {
+  transform: translateY(-4px);
+}
+.ap-stage:hover .ap-stage-icon-box {
+  border-color: #2E7D4F;
+}
+
+@media (max-width: 900px) {
+  .ap-stages {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+  .ap-stage {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+  }
+  .ap-stage-icon-box {
+    margin-right: 1.5rem;
+    margin-bottom: 0;
+  }
+  .ap-connector-track.desktop-only {
+    display: none;
+  }
+}

@@ -129,6 +129,28 @@
   line-height: 1.5;
 }
 
+.bento-list {
+  margin-top: 12px;
+  padding-left: 18px;
+  list-style-type: none;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.bento-list li {
+  position: relative;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.bento-list li::before {
+  content: "•";
+  position: absolute;
+  left: -14px;
+  color: inherit;
+  opacity: 0.5;
+}
+
 /* Mini Visuals for Cards */
 .bento-visual {
   flex-grow: 1;
@@ -176,6 +198,11 @@
 }
 @keyframes bentoFadeIn {
   to { opacity: 1; }
+}
+
+/* Position override for terminal */
+.card-inference .bento-visual-mini {
+  bottom: 70px;
 }
 
 /* Fake Terminal Animation */
@@ -260,5 +287,59 @@
     position: static;
     margin-top: 20px;
     padding: 0 32px 32px;
+  }
+}
+
+/* Card History Layout Override */
+.history-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 24px;
+  width: 100%;
+}
+
+.history-text-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin: 0 0 24px 0 !important;
+  line-height: 1.15;
+}
+
+.history-desc {
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: 0.85rem !important;
+  line-height: 1.35;
+  max-width: 270px;
+  margin: 0 0 18px 0 !important;
+}
+
+.history-list {
+  margin: 0 !important;
+  font-size: 0.8rem !important;
+}
+
+.history-list li {
+  margin-bottom: 2px !important;
+  line-height: 1.25 !important;
+}
+
+@media (max-width: 600px) {
+  .history-layout {
+    padding: 24px;
+    gap: 12px;
+  }
+  .history-title {
+    font-size: 1.25rem !important;
+  }
+  .history-desc {
+    max-width: 100%;
   }
 }

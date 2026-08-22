@@ -2,6 +2,7 @@
 Authentication routes: signup with email verification, login, OTP verification, profile management.
 All data stored directly in MongoDB.
 """
+import logging
 import secrets
 from datetime import datetime, timezone, timedelta
 from bson import ObjectId
@@ -32,6 +33,7 @@ from database import get_db
 from services.email_service import send_verification_otp_email, send_password_reset_otp_email
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+logger = logging.getLogger(__name__)
 
 
 def generate_otp() -> str:
@@ -87,7 +89,9 @@ async def signup(user_data: UserCreate):
         })
 
     # Dispatch email asynchronously in background
-    await send_verification_otp_email(to_email=email_clean, name=user_data.name, otp=otp)
+    email_sent = await send_verification_otp_email(to_email=email_clean, name=user_data.name, otp=otp)
+    if not email_sent:
+        logger.info("🔑 [DEV] Signup OTP for %s: %s", email_clean, otp)
 
     return SignupResponse(
         status="verification_required",
@@ -206,7 +210,9 @@ async def resend_otp(data: ResendOTPRequest):
         },
     )
 
-    await send_verification_otp_email(to_email=email_clean, name=user_doc.get("name", "Researcher"), otp=otp)
+    email_sent = await send_verification_otp_email(to_email=email_clean, name=user_doc.get("name", "Researcher"), otp=otp)
+    if not email_sent:
+        logger.info("🔑 [DEV] Resend OTP for %s: %s", email_clean, otp)
     return {"message": "A new 6-digit verification code has been sent to your email."}
 
 
@@ -236,7 +242,9 @@ async def login(credentials: UserLogin):
                 }
             },
         )
-        await send_verification_otp_email(to_email=email_clean, name=user_doc.get("name", "Researcher"), otp=otp)
+        email_sent = await send_verification_otp_email(to_email=email_clean, name=user_doc.get("name", "Researcher"), otp=otp)
+        if not email_sent:
+            logger.info("🔑 [DEV] Login-verify OTP for %s: %s", email_clean, otp)
         
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -357,7 +365,9 @@ async def forgot_password(data: ForgotPasswordRequest):
     )
 
     user_name = user_doc.get("name", "Researcher")
-    await send_password_reset_otp_email(to_email=email_clean, name=user_name, otp=otp)
+    email_sent = await send_password_reset_otp_email(to_email=email_clean, name=user_name, otp=otp)
+    if not email_sent:
+        logger.info("🔑 [DEV] Password-reset OTP for %s: %s", email_clean, otp)
 
     return GenericAuthResponse(
         status="otp_sent",

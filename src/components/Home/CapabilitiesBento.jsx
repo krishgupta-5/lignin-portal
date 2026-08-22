@@ -31,7 +31,14 @@ export default function CapabilitiesBento() {
               </div>
               <h3>Kinetic Extraction Curves</h3>
             </div>
-            <p>Visualize the exact yield trajectory over the entire 0–180 minute reaction duration. Our AI doesn't just predict the final yield, it models the entire thermodynamic velocity.</p>
+            <p>Neural ODE uses a continuous-time formulation to represent the evolving latent state. This continuous representation is conceptually aligned with the continuous evolution of lignin solubilization, unlike conventional models that only map to final yields.</p>
+            <ul className="bento-list">
+              <li>Reaction kinetics</li>
+              <li>Reaction time</li>
+              <li>Mass transfer</li>
+              <li>Solvent–biomass interactions</li>
+              <li>Continuous-time modelling</li>
+            </ul>
           </div>
           <div className="bento-visual">
             {/* Animated SVG Chart */}
@@ -105,14 +112,21 @@ export default function CapabilitiesBento() {
         {/* Card 5: Prediction History (Medium, spans 2x1) */}
         <div className="bento-card bento-medium card-history">
           <div className="bento-bg-gradient color-cyan" />
-          <div className="bento-content">
-            <div className="bento-header">
-              <div className="bento-icon color-cyan">
-                <Layers size={22} />
-              </div>
-              <h3>Experiment History</h3>
+          <div className="bento-content history-layout">
+            <div className="bento-icon color-cyan" style={{ flexShrink: 0 }}>
+              <Layers size={22} />
             </div>
-            <p>Every prediction is automatically saved to your profile. Track, search, and revisit all past configurations.</p>
+            <div className="history-text-col">
+              <h3 className="history-title">Experiment<br/>History</h3>
+              <p className="history-desc">Every prediction is automatically saved to your profile. Search previous records to review and revisit past configurations.</p>
+              <ul className="bento-list history-list">
+                <li>Previous prediction runs</li>
+                <li>Experimental configurations</li>
+                <li>Prediction records</li>
+                <li>Search & review</li>
+                <li>Revisit past configurations</li>
+              </ul>
+            </div>
           </div>
           <div className="bento-visual-mini stack-visual">
             <div className="stack-layer layer-1"></div>
