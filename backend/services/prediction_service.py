@@ -241,7 +241,7 @@ def _predict_pipeline(
     model_info = _get_model(model_name) or _get_model("node")
     blind_r2 = model_r2_map.get(
         model_name,
-        (model_info.get("metadata") or {}).get("blind_r2", 0.8726),
+        ((model_info or {}).get("metadata") or {}).get("blind_r2", 0.8726),
     )
     confidence = round(float(blind_r2) * 100.0, 1)
 
