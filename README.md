@@ -1,16 +1,39 @@
-# React + Vite
+# Lignin Extraction Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack web portal that serves deep learning models predicting lignin removal efficiency in deep eutectic solvent-based biomass fractionation, letting users run predictions, compare models, and review results through a browser instead of a script.
 
-Currently, two official plugins are available:
+## Features
+- Prediction interface for lignin removal yield from process parameters
+- Model comparison across DNN, TabNet, and NODE, with confidence indicators
+- Prediction history and downloadable reports (PDF export)
+- Email/OTP-based signup and login with JWT authentication
+- Responsive React UI with charts for yield/time and multi-model benchmarking
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+**Frontend:** React (Vite), React Router, Recharts, Framer Motion, Three.js
+**Backend:** FastAPI, MongoDB, JWT auth, OTP email verification
+**ML:** PyTorch (DNN), TabNet, NODE — trained models served via the FastAPI backend
+**Deployment:** Render
 
-## React Compiler
+## My Contribution
+Built collaboratively with a teammate. My focus:
+- React frontend: pages, layout, and the architecture/pipeline visualisation
+- FastAPI backend: authentication routes, OTP email flow, and MongoDB integration
+- Bug fixes and UI polish across the auth and dashboard components
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
+**Backend**
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+**Frontend**
+```bash
+npm install
+npm run dev
+```
+Configure `.env` for MongoDB connection string, JWT secret, and email SMTP credentials (see `backend/config.py` and `backend/.env.example`).
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Screenshots
+_Add screenshots of the prediction page, model comparison, and dashboard here._
