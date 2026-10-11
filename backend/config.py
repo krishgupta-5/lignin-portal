@@ -22,6 +22,10 @@ SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").replace(" ", "")
 EMAIL_FROM_NAME = os.getenv("EMAIL_FROM_NAME", "Lignin Yield Predictor AI")
 
+# HTTP Email API (for cloud platforms like Render Free tier that block SMTP ports 25/465/587)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+
 CORS_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:3000",

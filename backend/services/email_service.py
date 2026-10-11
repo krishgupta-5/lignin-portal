@@ -11,8 +11,17 @@ from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr, formatdate, make_msgid
+import httpx
 
-from config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EMAIL_FROM_NAME
+from config import (
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_USER,
+    SMTP_PASSWORD,
+    EMAIL_FROM_NAME,
+    RESEND_API_KEY,
+    RESEND_FROM_EMAIL,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +79,75 @@ def _send_smtp_sync(to_email: str, subject: str, html_body: str, plain_text: str
         logger.info(f"Verification email successfully delivered via SMTP ({SMTP_HOST}:{SMTP_PORT}) to {to_email}")
         return True
     except Exception as e:
-        logger.error(f"Failed to deliver email to {to_email} via {SMTP_HOST}:{SMTP_PORT}: {e}")
+        if "[Errno 101]" in str(e) or "Network is unreachable" in str(e):
+            logger.error(
+                f"Failed to deliver email to {to_email} via SMTP ({SMTP_HOST}:{SMTP_PORT}): {e}. "
+                "Notice: Cloud hosting platforms (like Render Free Tier) block outbound SMTP ports 25, 465, and 587. "
+                "Please configure RESEND_API_KEY to send emails reliably over HTTPS (port 443)."
+            )
+        else:
+            logger.error(f"Failed to deliver email to {to_email} via {SMTP_HOST}:{SMTP_PORT}: {e}")
         return False
+
+
+async def _send_resend_api(to_email: str, subject: str, html_body: str, plain_text: str) -> bool:
+    """
+    Deliver email over HTTPS via Resend REST API (port 443).
+    Bypasses cloud provider egress port blocks (ports 25, 465, 587) such as Render Free tier.
+    """
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "from": f"{EMAIL_FROM_NAME} <{RESEND_FROM_EMAIL}>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body,
+        "text": plain_text,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url, headers=headers, json=payload)
+            if resp.status_code in (200, 201):
+                logger.info(f"Verification email successfully delivered via Resend HTTPS API to {to_email}")
+                return True
+            else:
+                logger.error(f"Resend API rejected email to {to_email} (status {resp.status_code}): {resp.text}")
+                return False
+    except Exception as e:
+        logger.error(f"Failed to deliver email to {to_email} via Resend API: {e}")
+        return False
+
+
+async def _deliver_email(to_email: str, subject: str, html_body: str, plain_text: str) -> bool:
+    """
+    Dispatches email delivery using the best available method:
+    1. Resend HTTPS API (port 443) if RESEND_API_KEY is configured (ideal for Render/cloud).
+    2. Direct SMTP (ports 587/465) if SMTP credentials exist (ideal for local development).
+    3. DEV Mode Console fallback if neither is available or both fail.
+    """
+    # 1. Preferred on Cloud: Resend REST API
+    if RESEND_API_KEY:
+        if await _send_resend_api(to_email, subject, html_body, plain_text):
+            return True
+
+    # 2. SMTP (e.g. Gmail)
+    if SMTP_USER and SMTP_PASSWORD:
+        loop = asyncio.get_event_loop()
+        smtp_success = await loop.run_in_executor(None, _send_smtp_sync, to_email, subject, html_body, plain_text)
+        if smtp_success:
+            return True
+
+    # 3. Development Fallback Banner
+    logger.warning("No live email provider delivered to %s. Check SMTP or Resend credentials.", to_email)
+    logger.info("╔══════════════════════════════════════════════╗")
+    logger.info("║  DEV MODE — OTP CODE (check subject below)  ║")
+    logger.info("║  To: %-40s║", to_email)
+    logger.info("║  Subject: %-35s║", subject[:35])
+    logger.info("╚══════════════════════════════════════════════╝")
+    return False
 
 
 async def send_verification_otp_email(to_email: str, name: str, otp: str) -> bool:
@@ -176,9 +252,7 @@ async def send_verification_otp_email(to_email: str, name: str, otp: str) -> boo
 </body>
 </html>"""
 
-    # Run blocking SMTP in thread pool so it does not block async event loop
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _send_smtp_sync, to_email, subject, html_body, plain_text)
+    return await _deliver_email(to_email, subject, html_body, plain_text)
 
 
 async def send_password_reset_otp_email(to_email: str, name: str, otp: str) -> bool:
@@ -282,6 +356,5 @@ async def send_password_reset_otp_email(to_email: str, name: str, otp: str) -> b
 </body>
 </html>"""
 
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _send_smtp_sync, to_email, subject, html_body, plain_text)
+    return await _deliver_email(to_email, subject, html_body, plain_text)
 
