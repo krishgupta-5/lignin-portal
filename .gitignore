@@ -29,7 +29,7 @@ __pycache__/
 *$py.class
 *.egg-info/
 .env
-.venv/
+.venv
 backend/.venv/
 backend/venv/
 backend/.env

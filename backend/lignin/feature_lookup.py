@@ -9,9 +9,7 @@ values from the lignin extraction literature / DES databases.
 """
 import os
 import logging
-# pyrefly: ignore [missing-import]
 import numpy as np
-# pyrefly: ignore [missing-import]
 import pandas as pd
 
 logger = logging.getLogger(__name__)

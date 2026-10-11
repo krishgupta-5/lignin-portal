@@ -19,6 +19,14 @@ services:
         generateValue: true
       - key: CORS_ORIGINS
         value: "https://lignin-portal-frontend.onrender.com" # You can update this once you know the exact frontend URL
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
 
   # Frontend Service (Vite + React)
   - type: web
