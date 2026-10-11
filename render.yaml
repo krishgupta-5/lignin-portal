@@ -31,6 +31,8 @@ services:
         sync: false
       - key: RESEND_FROM_EMAIL
         value: "onboarding@resend.dev"
+      - key: GMAIL_WEBHOOK_URL
+        sync: false
 
   # Frontend Service (Vite + React)
   - type: web

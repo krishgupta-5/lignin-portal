@@ -21,6 +21,7 @@ from config import (
     EMAIL_FROM_NAME,
     RESEND_API_KEY,
     RESEND_FROM_EMAIL,
+    GMAIL_WEBHOOK_URL,
 )
 
 logger = logging.getLogger(__name__)
@@ -121,27 +122,59 @@ async def _send_resend_api(to_email: str, subject: str, html_body: str, plain_te
         return False
 
 
+async def _send_gmail_webhook(to_email: str, subject: str, html_body: str, plain_text: str) -> bool:
+    """
+    Deliver email over HTTPS via a Google Apps Script Web App relay.
+    Sends directly from personal Gmail to ANY recipient in the world.
+    100% free, no domain verification required, and runs on port 443 (Render-compatible).
+    """
+    payload = {
+        "to": to_email,
+        "subject": subject,
+        "html": html_body,
+        "text": plain_text,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            resp = await client.post(GMAIL_WEBHOOK_URL, json=payload)
+            if resp.status_code == 200:
+                logger.info(f"Verification email successfully delivered via Gmail Webhook to {to_email}")
+                return True
+            else:
+                logger.error(f"Gmail Webhook returned status {resp.status_code} for {to_email}: {resp.text}")
+                return False
+    except Exception as e:
+        logger.error(f"Failed to deliver email to {to_email} via Gmail Webhook: {e}")
+        return False
+
+
 async def _deliver_email(to_email: str, subject: str, html_body: str, plain_text: str) -> bool:
     """
     Dispatches email delivery using the best available method:
-    1. Resend HTTPS API (port 443) if RESEND_API_KEY is configured (ideal for Render/cloud).
-    2. Direct SMTP (ports 587/465) if SMTP credentials exist (ideal for local development).
-    3. DEV Mode Console fallback if neither is available or both fail.
+    1. Gmail Webhook (sends from personal Gmail over HTTPS to ANY email — Render Free compatible).
+    2. Resend HTTPS API (port 443) if RESEND_API_KEY is configured.
+    3. Direct SMTP (ports 587/465) if SMTP credentials exist (ideal for local development).
+    4. DEV Mode Console fallback if neither is available or both fail.
     """
-    # 1. Preferred on Cloud: Resend REST API
+    # 1. Preferred on Render: Gmail Webhook (100% free Gmail delivery to ANY user)
+    if GMAIL_WEBHOOK_URL:
+        if await _send_gmail_webhook(to_email, subject, html_body, plain_text):
+            return True
+
+    # 2. Resend REST API
     if RESEND_API_KEY:
         if await _send_resend_api(to_email, subject, html_body, plain_text):
             return True
 
-    # 2. SMTP (e.g. Gmail)
+    # 3. SMTP (e.g. Gmail)
     if SMTP_USER and SMTP_PASSWORD:
         loop = asyncio.get_event_loop()
         smtp_success = await loop.run_in_executor(None, _send_smtp_sync, to_email, subject, html_body, plain_text)
         if smtp_success:
             return True
 
-    # 3. Development Fallback Banner
-    logger.warning("No live email provider delivered to %s. Check SMTP or Resend credentials.", to_email)
+    # 4. Development Fallback Banner
+    logger.warning("No live email provider delivered to %s. Check SMTP, Resend, or Gmail Webhook credentials.", to_email)
     logger.info("╔══════════════════════════════════════════════╗")
     logger.info("║  DEV MODE — OTP CODE (check subject below)  ║")
     logger.info("║  To: %-40s║", to_email)

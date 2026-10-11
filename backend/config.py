@@ -25,6 +25,7 @@ EMAIL_FROM_NAME = os.getenv("EMAIL_FROM_NAME", "Lignin Yield Predictor AI")
 # HTTP Email API (for cloud platforms like Render Free tier that block SMTP ports 25/465/587)
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+GMAIL_WEBHOOK_URL = os.getenv("GMAIL_WEBHOOK_URL", "")
 
 CORS_ORIGINS = [
     "http://localhost:5173",
