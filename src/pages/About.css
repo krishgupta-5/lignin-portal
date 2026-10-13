@@ -1270,13 +1270,15 @@
 }
 
 .sc-icon-wrapper {
-  width: 64px; height: 64px;
+  width: 80px; height: 80px;
   background: rgba(105, 201, 168, 0.08);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   color: var(--forest-green);
   margin-bottom: 1.5rem;
   transition: all 0.4s;
+  overflow: hidden;
+  border: 2px solid rgba(105, 201, 168, 0.25);
 }
 .sc-icon-wrapper svg {
   display: block;
@@ -1285,7 +1287,8 @@
 .student-card:hover .sc-icon-wrapper {
   background: var(--soft-emerald);
   color: #fff;
-  transform: scale(1.1);
+  transform: scale(1.08);
+  border-color: var(--soft-emerald);
 }
 .sc-name { font-size: 1.15rem; font-weight: 700; color: var(--graphite); margin-bottom: 0.75rem; }
 .sc-line { width: 24px; height: 2px; background: var(--soft-emerald); margin-bottom: 0.75rem; transition: width 0.3s; }

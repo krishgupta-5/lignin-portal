@@ -60,8 +60,8 @@ timeline_array = '''const projectPhases = [
     months: "Months 9–12",
     status: "In Progress",
     activities: [
-      { name: "Interim Report and Mid-term Evaluation", start: 11, end: 12 },
-      { name: "Final Report Compilation & Final Presentation", start: 11, end: 12 }
+      { name: "Interim Report and Mid-term Evaluation", start: 11, end: 12, status: "Completed" },
+      { name: "Final Report Compilation & Final Presentation", start: 11, end: 12, status: "In Progress" }
     ]
   }
 ];'''
@@ -134,7 +134,7 @@ timeline_jsx = '''{/* 13. TIMELINE */}
                               ))}
                               <div style={{ 
                                 gridColumn: (act.start + 1) + " / " + (act.end + 1), 
-                                background: t.status === "Completed" ? "#10B981" : "#EF4444", 
+                                background: (act.status === "Completed" || (!act.status && t.status === "Completed")) ? "#10B981" : "#EF4444", 
                                 borderRadius: "4px",
                                 height: "100%",
                                 zIndex: 2

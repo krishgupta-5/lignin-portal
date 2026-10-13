@@ -160,8 +160,8 @@ const projectPhases = [
     months: "Months 9–12",
     status: "In Progress",
     activities: [
-      { name: "Interim Report and Mid-term Evaluation", start: 11, end: 12 },
-      { name: "Final Report Compilation & Final Presentation", start: 11, end: 12 }
+      { name: "Interim Report and Mid-term Evaluation", start: 11, end: 12, status: "Completed" },
+      { name: "Final Report Compilation & Final Presentation", start: 11, end: 12, status: "In Progress" }
     ]
   }
 ];
@@ -172,6 +172,34 @@ const faculty = [
 ];
 
 const team = ['Daksh Sharma', 'Divyam Puri', 'Krish Gupta', 'Lavish Arora', 'Lavkush Vashistha'];
+
+const researchTeam = [
+  {
+    name: 'Daksh Sharma',
+    role: 'Research Team Member',
+    email: 'dsharma60_be24@thapar.edu',
+    image: '/team/daksh-sharma.png'
+  },
+  {
+    name: 'Divyam Puri',
+    role: 'Research Team Member',
+    email: 'dpuri60_be24@thapar.edu',
+    image: '/team/divyam-puri.png',
+    position: 'center 15%'
+  },
+  {
+    name: 'Krish Gupta',
+    role: 'Research Team Member',
+    email: 'kgupta60_be24@thapar.edu',
+    image: null
+  },
+  {
+    name: 'Lavkush Vashistha',
+    role: 'Research Team Member',
+    email: 'lvashistha60_be24@thapar.edu',
+    image: '/team/lavkush-vashistha.jpg'
+  }
+];
 
 const ExplainableAISection = () => {
   const [activeTab, setActiveTab] = useState('global');
@@ -703,7 +731,7 @@ export default function About() {
                               ))}
                               <div style={{ 
                                 gridColumn: (act.start + 1) + " / " + (act.end + 1), 
-                                background: t.status === "Completed" ? "#10B981" : "#EF4444", 
+                                background: (act.status === "Completed" || (!act.status && t.status === "Completed")) ? "#10B981" : "#EF4444", 
                                 borderRadius: "4px",
                                 height: "100%",
                                 zIndex: 2
@@ -770,35 +798,41 @@ export default function About() {
              </div>
              
              <div className="student-grid">
-                  <motion.div className="student-card" initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{once:true}} transition={{delay:0.2}}>
-                    <div className="sc-icon-wrapper"><User size={32} strokeWidth={1.5}/></div>
-                    <h4 className="sc-name">Divyam Puri</h4>
-                    <div className="sc-line"></div>
-                    <p className="sc-role">Research Team Member</p>
-                    <a href="mailto:dpuri60_be24@thapar.edu" className="email-link"><Mail size={14} /> dpuri60_be24@thapar.edu</a>
-                  </motion.div>
-                  <motion.div className="student-card" initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{once:true}} transition={{delay:0.3}}>
-                    <div className="sc-icon-wrapper"><User size={32} strokeWidth={1.5}/></div>
-                    <h4 className="sc-name">Daksh Sharma</h4>
-                    <div className="sc-line"></div>
-                    <p className="sc-role">Research Team Member</p>
-                    <a href="mailto:dsharma60_be24@thapar.edu" className="email-link"><Mail size={14} /> dsharma60_be24@thapar.edu</a>
-                  </motion.div>
-                  <motion.div className="student-card" initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{once:true}} transition={{delay:0.4}}>
-                    <div className="sc-icon-wrapper"><User size={32} strokeWidth={1.5}/></div>
-                    <h4 className="sc-name">Krish Gupta</h4>
-                    <div className="sc-line"></div>
-                    <p className="sc-role">Research Team Member</p>
-                    <a href="mailto:kgupta60_be24@thapar.edu" className="email-link"><Mail size={14} /> kgupta60_be24@thapar.edu</a>
-                  </motion.div>
-                  <motion.div className="student-card" initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{once:true}} transition={{delay:0.5}}>
-                    <div className="sc-icon-wrapper"><User size={32} strokeWidth={1.5}/></div>
-                    <h4 className="sc-name">Lavkush Vashistha</h4>
-                    <div className="sc-line"></div>
-                    <p className="sc-role">Research Team Member</p>
-                    <a href="mailto:lvashistha60_be24@thapar.edu" className="email-link"><Mail size={14} /> lvashistha60_be24@thapar.edu</a>
-                  </motion.div>
-               </div>
+               {researchTeam.map((member, idx) => (
+                 <motion.div 
+                   key={member.name}
+                   className="student-card" 
+                   initial={{opacity:0, y:20}} 
+                   whileInView={{opacity:1, y:0}} 
+                   viewport={{once:true}} 
+                   transition={{delay: 0.2 + idx * 0.1}}
+                 >
+                   <div className="sc-icon-wrapper" style={member.image ? { overflow: "hidden", padding: 0 } : {}}>
+                     {member.image ? (
+                       <img 
+                         src={member.image} 
+                         alt={member.name} 
+                         style={{ 
+                           width: "100%", 
+                           height: "100%", 
+                           objectFit: "cover", 
+                           objectPosition: member.position || "center",
+                           display: "block" 
+                         }} 
+                       />
+                     ) : (
+                       <User size={32} strokeWidth={1.5}/>
+                     )}
+                   </div>
+                   <h4 className="sc-name">{member.name}</h4>
+                   <div className="sc-line"></div>
+                   <p className="sc-role">{member.role}</p>
+                   <a href={`mailto:${member.email}`} className="email-link">
+                     <Mail size={14} /> {member.email}
+                   </a>
+                 </motion.div>
+               ))}
+             </div>
             </div>
           </div>
         </section>
